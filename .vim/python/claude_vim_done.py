@@ -15,7 +15,7 @@ if anthropic_api_key is None:
         with open(anthropic_filename, "r") as api_file:
             anthropic_api_key = api_file.read()[:-1]
     except FileNotFoundError as FNFE:
-        print(f"OpenAI Key must be provided at ")
+        print(f"Anthropic Key must be provided at ")
         raise FNFE
 
 
