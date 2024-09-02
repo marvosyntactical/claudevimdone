@@ -8,14 +8,11 @@ In a very small file, a ~20 line completion takes about 5 seconds for me.
 
 # Setup
 
-Copy ```.vim/plugin/claude\_vim\_done.vim``` to ```.vim/plugin/claude\_vim\_done.vim```.
-Copy ```.vim/python/claude\_vim\_done.py``` to ```.vim/python/claude\_vim\_done.py```.
-
-Put your Anthropic API key into a single line file at ```.vim/python/.anthropic_api_key```.
-
-Run ```pip install anthropic```.
-
-Start vim.
+1. Copy ```.vim/plugin/claude\_vim\_done.vim``` to ```.vim/plugin/claude\_vim\_done.vim```.
+2. Copy ```.vim/python/claude\_vim\_done.py``` to ```.vim/python/claude\_vim\_done.py```.
+3. Put your Anthropic API key into a single line file at ```.vim/python/.anthropic_api_key```.
+4. Run ```pip install anthropic```.
+5. Restart Vim.
 
 # Usage
 
