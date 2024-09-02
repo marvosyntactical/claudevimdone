@@ -6,8 +6,13 @@ endif
 python3 << EOF
 import sys
 import vim
+import asyncio
 sys.path.append(vim.eval('expand("<sfile>:p:h:h")') + '/python')
 import claude_vim_done
+
+# Create an event loop
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 EOF
 
 function! ClaudeVimDone()

@@ -1,5 +1,6 @@
 import vim
 import os
+
 import anthropic
 from anthropic import Anthropic
 
@@ -7,7 +8,7 @@ anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 
 curr_dir = f"{__file__[:len(__file__)-__file__[::-1].find('/')]}"
 
-# print("Claude Vim Done v0.1 loaded.")
+print("Claude Vim Done v0.2 loaded.")
 
 if anthropic_api_key is None:
     anthropic_filename = curr_dir+ ".anthropic_api_key"
@@ -26,15 +27,15 @@ def get_completion(prompt):
         response = client.messages.create(
             model="claude-3-5-sonnet-20240620",
             max_tokens=2048,
-            system="Here you help me with code completion in my personal little vim plugin, written mostly by you. Provide concise, relevant completions.",
+            system="You are an AI assistant helping with code completion in a text editor. Provide concise, relevant completions.",
             messages=[
                 {"role": "user", "content": prompt}
             ]
         )
-    except anthropic.InternalServerError as ISE:
-        return "<Anthropic Server Overloaded, try again later>"
-    return response.content[0].text
-
+        return response.content[0].text
+    except Exception as e:
+        # yield "<Anthropic Servers Reponse: {e}>"
+        return f"{type(e)}: {e}"
 
 def generate_completion():
     global last_completion_info
@@ -68,27 +69,28 @@ def generate_completion():
     That means you should IMMEDIATELY BEGIN WITH THE CODE CONTINUATION, and NEVER preface it with something like "Here's a completion for your fibonacci function:" or anything like that. Everything you output is DIRECTLY inserted into the code from the cursor position onward, so do not use triple backticks for code and talk normally around it, but just directly output code and put comments as comments in the relevant language (.e.g # if you're presented with python code, // if you're presented with C++ code)
     """
 
+
     completion = get_completion(prompt)
     completion_lines = completion.split('\n')
 
-    # Store original content for undo
-    original_lines = buffer[start_row-1:]
+    # Insert completion
+    for i, line in enumerate(completion_lines):
+        if i == 0:
+            # Insert at the cursor position
+            new_line = buffer[start_row-1][:start_col] + line + buffer[start_row-1][start_col:]
+            buffer[start_row-1] = new_line
+        else:
+            # Insert new lines
+            buffer.append('', start_row + i - 1)
+            buffer[start_row + i - 1] = line
+
+    # Store completion info for undo
     last_completion_info = {
         'start_row': start_row,
         'start_col': start_col,
-        'original_lines': original_lines,
         'completion_lines': completion_lines
     }
 
-    # Apply completion
-    for i, line in enumerate(completion_lines):
-        if i == 0:
-            buffer[start_row-1] = buffer[start_row-1][:start_col] + line
-        else:
-            if start_row + i - 1 < len(buffer):
-                buffer[start_row + i - 1] = line
-            else:
-                buffer.append(line)
 
 def undo_completion():
     global last_completion_info
@@ -100,17 +102,18 @@ def undo_completion():
     buffer = vim.current.buffer
     start_row = last_completion_info['start_row']
     start_col = last_completion_info['start_col']
-    original_lines = last_completion_info['original_lines']
+    completion_lines = last_completion_info['completion_lines']
 
-    # Restore original content
-    buffer[start_row-1:] = original_lines
+    # Remove the completion
+    for i, line in enumerate(completion_lines):
+        if i == 0:
+            buffer[start_row-1] = buffer[start_row-1][:start_col]
+        else:
+            del buffer[start_row]
 
     # Reset cursor position
     vim.current.window.cursor = (start_row, start_col)
 
-    # Clear the last_completion_info
     last_completion_info = None
-
-    print("Completion undone.")
 
 
